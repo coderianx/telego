@@ -1,4 +1,4 @@
-# mytelegrambot
+# telego
 
 **A lightweight Telegram Bot library written in Go.**
 
