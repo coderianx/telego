@@ -3,6 +3,7 @@ package telego
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -75,4 +76,28 @@ func (b *Bot) getUpdates() ([]Update, error) {
 	}
 
 	return result.Result, nil
+}
+
+func (b *Bot) StartWebhook() {
+
+}
+
+func (b *Bot) Listener(){
+	
+}
+var cfg = configs.Config{Port: 1023}
+
+func Setup() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("", WebHookHandler)
+	addr := fmt.Sprintf(":%d", cfg.Port)
+	log.Printf("Server running on %s", addr)
+	if err := http.ListenAndServe(addr, mux); err != nil {
+		log.Fatalf("Server failed: %v", err)
+	}
+}
+func WebHookHandler(w http.ResponseWriter, r *http.Request) {
+	data := make([]byte, 30)
+	r.Body.Read(data)
+	print(string(data))
 }
