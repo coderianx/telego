@@ -140,100 +140,26 @@ func (b *Bot) getUpdates() ([]Update, error) {
 	return result.Result, nil
 }
 
-// ============ Public API Methods ============
+func (b *Bot) StartWebhook() {
 
-// SendMessage bot tarafından bir sohbete metin mesajı gönderir
-func (b *Bot) SendMessage(chatID int64, text string) error {
-	endpoint := fmt.Sprintf("%s/sendMessage", b.BaseURL)
-	data := url.Values{}
-	data.Set("chat_id", fmt.Sprintf("%d", chatID))
-	data.Set("text", text)
-
-	resp, err := b.Client.PostForm(endpoint, data)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("telegram API hatası: %d", resp.StatusCode)
-	}
-
-	return nil
 }
 
-// SendMessageWithKeyboard inline keyboard ile mesaj gönderir
-func (b *Bot) SendMessageWithKeyboard(chatID int64, text string, keyboard *InlineKeyboardMarkup) error {
-	endpoint := fmt.Sprintf("%s/sendMessage", b.BaseURL)
-
-	payload := map[string]interface{}{
-		"chat_id":      chatID,
-		"text":         text,
-		"reply_markup": keyboard,
-	}
-
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
-
-	resp, err := b.Client.Post(endpoint, "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("telegram API hatası: %d", resp.StatusCode)
-	}
-
-	return nil
+func (b *Bot) Listener(){
+	
 }
+var cfg = configs.Config{Port: 1023}
 
-// EditMessage bir mesajı düzenler
-func (b *Bot) EditMessage(chatID int64, messageID int, text string) error {
-	endpoint := fmt.Sprintf("%s/editMessageText", b.BaseURL)
-
-	payload := map[string]interface{}{
-		"chat_id":    chatID,
-		"message_id": messageID,
-		"text":       text,
+func Setup() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("", WebHookHandler)
+	addr := fmt.Sprintf(":%d", cfg.Port)
+	log.Printf("Server running on %s", addr)
+	if err := http.ListenAndServe(addr, mux); err != nil {
+		log.Fatalf("Server failed: %v", err)
 	}
-
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
-
-	resp, err := b.Client.Post(endpoint, "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("telegram API hatası: %d", resp.StatusCode)
-	}
-
-	return nil
 }
-
-// DeleteMessage bir mesajı siler
-func (b *Bot) DeleteMessage(chatID int64, messageID int) error {
-	endpoint := fmt.Sprintf("%s/deleteMessage", b.BaseURL)
-	data := url.Values{}
-	data.Set("chat_id", fmt.Sprintf("%d", chatID))
-	data.Set("message_id", fmt.Sprintf("%d", messageID))
-
-	resp, err := b.Client.PostForm(endpoint, data)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("telegram API hatası: %d", resp.StatusCode)
-	}
-
-	return nil
+func WebHookHandler(w http.ResponseWriter, r *http.Request) {
+	data := make([]byte, 30)
+	r.Body.Read(data)
+	print(string(data))
 }
